@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法战棋 - Magic Strategy Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>魔法战棋 Demo</h1>
+            <div class="turn-info">
+                <span id="currentTurn">回合: 1</span>
+                <span id="currentPlayer">当前行动: 玩家</span>
+                <button class="editor-btn" onclick="openEditor()">🗺️ 地图编辑器</button>
+                <button class="editor-btn" onclick="openSkillEditor()">⚡ 技能树编辑器</button>
+            </div>
+        </div>
+        
+        <div class="game-main">
+            <div class="battlefield-container">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </div>
+            
+            <div class="side-panel">
+                <div class="unit-info">
+                    <h3>单位信息</h3>
+                    <div id="unitDetails">
+                        <p>点击单位查看详情</p>
+                    </div>
+                </div>
+                
+                <div class="action-panel">
+                    <h3>操作面板</h3>
+                    <div id="actionButtons">
+                        <button id="btnMove" onclick="game.startMoveMode()">移动</button>
+                        <button id="btnAttack" onclick="game.startAttackMode()">攻击/魔法</button>
+                        <button id="btnWait" onclick="game.unitWait()">待机</button>
+                        <button id="btnEndTurn" onclick="game.endTurn()">结束回合</button>
+                    </div>
+                </div>
+                
+                <div class="magic-panel">
+                    <h3>魔法系统</h3>
+                    <div id="magicDetails">
+                        <p>选择单位后显示可用魔法</p>
+                    </div>
+                </div>
+                
+                <div class="terrain-info">
+                    <h3>地形效果</h3>
+                    <div class="terrain-legend">
+                        <div class="legend-item"><span class="terrain-color grass"></span>草地: 正常移动</div>
+                        <div class="legend-item"><span class="terrain-color water"></span>水域: 阻挡移动</div>
+                        <div class="legend-item"><span class="terrain-color mountain"></span>山地: 防御+1</div>
+                        <div class="legend-item"><span class="terrain-color fire"></span>燃烧: 移动消耗+2</div>
+                        <div class="legend-item"><span class="terrain-color ice"></span>冻结: 可通行</div>
+                        <div class="legend-item"><span class="terrain-color rock"></span>石柱: 完全阻挡</div>
+                        <div class="legend-item"><span class="terrain-color wall"></span>墙壁: 室内障碍</div>
+                        <div class="legend-item"><span class="terrain-color floor"></span>地板: 室内地面</div>
+                    </div>
+                </div>
+                
+                <div class="game-log">
+                    <h3>战斗日志</h3>
+                    <div id="battleLog"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+    
+    <!-- 地图编辑器模态框 -->
+    <div id="editorModal" class="editor-modal">
+        <div class="editor-container">
+            <div class="editor-header">
+                <h2>🗺️ 地图编辑器</h2>
+                <button class="close-btn" onclick="closeEditor()">×</button>
+            </div>
+            
+            <div class="editor-main">
+                <div class="editor-toolbar">
+                    <h3>工具栏</h3>
+                    <div class="tool-section">
+                        <h4>地形工具</h4>
+                        <div class="tool-buttons">
+                            <button class="tool-btn active" data-tool="terrain" data-type="grass" onclick="selectTool('terrain', 'grass')">🌿 草地</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="water" onclick="selectTool('terrain', 'water')">💧 水域</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="mountain" onclick="selectTool('terrain', 'mountain')">⛰️ 山地</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="fire" onclick="selectTool('terrain', 'fire')">🔥 燃烧</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="ice" onclick="selectTool('terrain', 'ice')">❄️ 冰冻</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="rock" onclick="selectTool('terrain', 'rock')">🪨 石柱</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="wall" onclick="selectTool('terrain', 'wall')">🧱 墙壁</button>
+                            <button class="tool-btn" data-tool="terrain" data-type="floor" onclick="selectTool('terrain', 'floor')">⬜ 地板</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-section">
+                        <h4>单位工具</h4>
+                        <div class="tool-buttons">
+                            <button class="tool-btn" data-tool="unit" data-type="player_fire" onclick="selectTool('unit', 'player_fire')">🔴 玩家火法师</button>
+                            <button class="tool-btn" data-tool="unit" data-type="player_ice" onclick="selectTool('unit', 'player_ice')">🔵 玩家冰法师</button>
+                            <button class="tool-btn" data-tool="unit" data-type="player_holy" onclick="selectTool('unit', 'player_holy')">🟡 玩家神官</button>
+                            <button class="tool-btn" data-tool="unit" data-type="player_ancient" onclick="selectTool('unit', 'player_ancient')">🟣 玩家古代法师</button>
+                            <button class="tool-btn" data-tool="unit" data-type="player_physical" onclick="selectTool('unit', 'player_physical')">🔷 玩家骑士</button>
+                            <button class="tool-btn" data-tool="unit" data-type="enemy_fire" onclick="selectTool('unit', 'enemy_fire')">🔴 敌方火法师</button>
+                            <button class="tool-btn" data-tool="unit" data-type="enemy_ice" onclick="selectTool('unit', 'enemy_ice')">🔵 敌方冰法师</button>
+                            <button class="tool-btn" data-tool="unit" data-type="enemy_holy" onclick="selectTool('unit', 'enemy_holy')">🟡 敌方神官</button>
+                            <button class="tool-btn" data-tool="unit" data-type="enemy_physical" onclick="selectTool('unit', 'enemy_physical')">🔷 敌方战士</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-section">
+                        <h4>地图设置</h4>
+                        <div class="map-settings">
+                            <label>地图类型:</label>
+                            <select id="mapType" onchange="editor.setMapType(this.value)">
+                                <option value="outdoor">室外地图</option>
+                                <option value="indoor">室内地图</option>
+                            </select>
+                            <button class="action-btn" onclick="editor.clearMap()">🗑️ 清空地图</button>
+                            <button class="action-btn" onclick="editor.fillGrass()">🌿 填充草地</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-section">
+                        <h4>地图操作</h4>
+                        <div class="map-actions">
+                            <button class="action-btn" onclick="editor.saveMap()">💾 保存地图</button>
+                            <button class="action-btn" onclick="editor.loadMap()">📂 加载地图</button>
+                            <button class="action-btn" onclick="editor.exportMap()">📤 导出JSON</button>
+                            <button class="action-btn" onclick="editor.applyToGame()">▶️ 应用到游戏</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="editor-canvas-container">
+                    <canvas id="editorCanvas" width="800" height="600"></canvas>
+                    <div class="editor-info">
+                        <p>当前工具: <span id="currentTool">草地</span></p>
+                        <p>左键绘制/放置 | 右键擦除</p>
+                        <p>地图类型: <span id="currentMapType">室外</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 技能树编辑器模态框 -->
+    <div id="skillEditorModal" class="editor-modal">
+        <div class="skill-editor-container">
+            <div class="editor-header">
+                <h2>⚡ 技能树编辑器</h2>
+                <button class="close-btn" onclick="closeSkillEditor()">×</button>
+            </div>
+            
+            <div class="skill-editor-main">
+                <div class="skill-toolbar">
+                    <h3>体系选择</h3>
+                    <div class="system-selector">
+                        <button class="system-btn active" data-system="natural" onclick="skillEditor.selectSystem('natural')">
+                            <div class="system-icon">🌿</div>
+                            <div class="system-name">自然魔法</div>
+                            <div class="system-desc">环形结构·四元素</div>
+                        </button>
+                        <button class="system-btn" data-system="holy" onclick="skillEditor.selectSystem('holy')">
+                            <div class="system-icon">✨</div>
+                            <div class="system-name">神圣魔法</div>
+                            <div class="system-desc">三角形·三向专精</div>
+                        </button>
+                        <button class="system-btn" data-system="ancient" onclick="skillEditor.selectSystem('ancient')">
+                            <div class="system-icon">🔮</div>
+                            <div class="system-name">古代魔法</div>
+                            <div class="system-desc">丰字形·主线聚焦</div>
+                        </button>
+                    </div>
+                    
+                    <h3>节点工具</h3>
+                    <div class="node-tools">
+                        <button class="node-tool-btn active" data-tool="select" onclick="skillEditor.setTool('select')">
+                            👆 选择/查看
+                        </button>
+                        <button class="node-tool-btn" data-tool="add" onclick="skillEditor.setTool('add')">
+                            ➕ 添加节点
+                        </button>
+                        <button class="node-tool-btn" data-tool="delete" onclick="skillEditor.setTool('delete')">
+                            🗑️ 删除节点
+                        </button>
+                        <button class="node-tool-btn" data-tool="connect" onclick="skillEditor.setTool('connect')">
+                            🔗 连接节点
+                        </button>
+                    </div>
+                    
+                    <h3>节点属性</h3>
+                    <div class="node-properties" id="nodeProperties">
+                        <p class="no-selection">选择节点以编辑属性</p>
+                    </div>
+
+                    <h3>连接操作</h3>
+                    <div class="connection-actions">
+                        <button class="action-btn" onclick="skillEditor.addBidirectionalConnection()">🔗 创建连接</button>
+                        <button class="action-btn" onclick="skillEditor.removeConnections()">❌ 删除连接</button>
+                    </div>
+
+                    <div class="tree-info-legend">
+                        <p><span class="legend-line" style="color: #FFD700;">──</span> 可学习连接</p>
+                        <p><span class="legend-line" style="color: #FF4444;">──</span> 不可学习连接</p>
+                    </div>
+
+                    <h3>技能树操作</h3>
+                    <div class="tree-actions">
+                        <button class="action-btn" onclick="skillEditor.saveTree()">💾 保存技能树</button>
+                        <button class="action-btn" onclick="skillEditor.loadTree()">📂 加载技能树</button>
+                        <button class="action-btn" onclick="skillEditor.exportTree()">📤 导出JSON</button>
+                        <button class="action-btn" onclick="skillEditor.resetTree()">🔄 重置技能树</button>
+                    </div>
+                </div>
+                
+                <div class="skill-tree-container">
+                    <canvas id="skillTreeCanvas" width="900" height="700"></canvas>
+                    <div class="tree-info">
+                        <p>当前体系: <span id="currentSystem">自然魔法</span></p>
+                        <p>当前工具: <span id="currentSkillTool">选择/查看</span></p>
+                        <p>节点数量: <span id="nodeCount">0</span></p>
+                        <p class="hint">提示: 选择体系后，左键点击节点操作，拖拽移动节点位置</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 节点编辑表单 -->
+    <div id="nodeEditModal" class="editor-modal">
+        <div class="node-edit-container">
+            <div class="editor-header">
+                <h3>编辑技能节点</h3>
+                <button class="close-btn" onclick="closeNodeEdit()">×</button>
+            </div>
+            
+            <div class="node-edit-form">
+                <div class="form-group">
+                    <label>技能名称:</label>
+                    <input type="text" id="nodeName" placeholder="例如: 火球术">
+                </div>
+                
+                <div class="form-group">
+                    <label>技能类型:</label>
+                    <select id="nodeType">
+                        <option value="basic">基础技能</option>
+                        <option value="advanced">进阶技能</option>
+                        <option value="expert">高阶技能</option>
+                        <option value="ultimate">终极技能</option>
+                        <option value="passive">被动技能</option>
+                        <option value="cross">跨系节点</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>属性:</label>
+                    <select id="nodeElement">
+                        <option value="fire">火</option>
+                        <option value="ice">冰</option>
+                        <option value="wind">风</option>
+                        <option value="thunder">雷</option>
+                        <option value="judgment">裁决</option>
+                        <option value="grace">恩典</option>
+                        <option value="redemption">救赎</option>
+                        <option value="ancient">古代</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>所需技能点:</label>
+                    <input type="number" id="nodeCost" min="-1" max="100" value="1">
+                    <small style="color: #888; display: block; margin-top: 5px;">设置为 -1 表示该技能无法学习</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>技能效果:</label>
+                    <textarea id="nodeEffect" rows="3" placeholder="描述技能效果"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>技能数值:</label>
+                    <div class="number-inputs">
+                        <div class="input-row">
+                            <label>伤害:</label>
+                            <input type="number" id="nodeDamage" min="0" max="999" value="0">
+                            <label>范围:</label>
+                            <input type="number" id="nodeRange" min="1" max="10" value="1">
+                        </div>
+                        <div class="input-row">
+                            <label>持续时间:</label>
+                            <input type="number" id="nodeDuration" min="0" max="10" value="0">
+                            <label>咏唱回合:</label>
+                            <input type="number" id="nodeCastTime" min="0" max="10" value="0">
+                        </div>
+                        <div class="input-row">
+                            <label>冷却回合:</label>
+                            <input type="number" id="nodeCooldown" min="0" max="20" value="0">
+                            <label>命中率:</label>
+                            <input type="number" id="nodeHitRate" min="0" max="100" value="90">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>附加属性:</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="nodeCanUnlockCross"> 可跨系解锁</label>
+                        <label><input type="checkbox" id="nodeHasDebuff"> 带负面效果</label>
+                        <label><input type="checkbox" id="nodeIsCore"> 核心技能</label>
+                        <label><input type="checkbox" id="nodeIsPassive"> 被动效果</label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="action-btn" onclick="skillEditor.saveNodeEdit()">💾 保存修改</button>
+                    <button class="action-btn" onclick="closeNodeEdit()">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="editor.js"></script>
+    <script src="skillEditor.js"></script>
+</body>
+</html>
