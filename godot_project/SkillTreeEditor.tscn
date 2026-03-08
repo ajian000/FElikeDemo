@@ -1,0 +1,185 @@
+[gd_scene load_steps=2 format=3 uid="uid://b5k7xq85r4k3x"]
+
+[ext_resource type="Script" path="res://SkillTreeEditor.gd" id="1_3j5w3"]
+
+[node name="SkillTreeEditor" type="Control"]
+layout_mode = 3
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_3j5w3")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Header" type="HBoxContainer" parent="./VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="./VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚡ 技能树编辑器"
+
+[node name="CloseButton" type="Button" parent="./VBoxContainer/Header"]
+layout_mode = 2
+text = "×"
+
+[node name="MainContainer" type="HBoxContainer" parent="./VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ToolPanel" type="VBoxContainer" parent="./VBoxContainer/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SystemSelector" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SystemLabel" type="Label" parent="./VBoxContainer/MainContainer/ToolPanel/SystemSelector"]
+layout_mode = 2
+text = "体系选择"
+
+[node name="SystemGrid" type="GridContainer" parent="./VBoxContainer/MainContainer/ToolPanel/SystemSelector"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 1
+
+[node name="NaturalButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/SystemSelector/SystemGrid"]
+layout_mode = 2
+text = "🌿 自然魔法"
+
+[node name="HolyButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/SystemSelector/SystemGrid"]
+layout_mode = 2
+text = "✨ 神圣魔法"
+
+[node name="AncientButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/SystemSelector/SystemGrid"]
+layout_mode = 2
+text = "🔮 古代魔法"
+
+[node name="NodeTools" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ToolsLabel" type="Label" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools"]
+layout_mode = 2
+text = "节点工具"
+
+[node name="ToolsGrid" type="GridContainer" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 1
+
+[node name="SelectButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools/ToolsGrid"]
+layout_mode = 2
+text = "👆 选择/查看"
+
+[node name="AddButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools/ToolsGrid"]
+layout_mode = 2
+text = "➕ 添加节点"
+
+[node name="DeleteButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools/ToolsGrid"]
+layout_mode = 2
+text = "🗑️ 删除节点"
+
+[node name="ConnectButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/NodeTools/ToolsGrid"]
+layout_mode = 2
+text = "🔗 连接节点"
+
+[node name="NodeProperties" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PropertiesLabel" type="Label" parent="./VBoxContainer/MainContainer/ToolPanel/NodeProperties"]
+layout_mode = 2
+text = "节点属性"
+
+[node name="PropertiesContent" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel/NodeProperties"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ConnectionActions" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ConnectionLabel" type="Label" parent="./VBoxContainer/MainContainer/ToolPanel/ConnectionActions"]
+layout_mode = 2
+text = "连接操作"
+
+[node name="ConnectionGrid" type="GridContainer" parent="./VBoxContainer/MainContainer/ToolPanel/ConnectionActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 1
+
+[node name="CreateConnectionButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/ConnectionActions/ConnectionGrid"]
+layout_mode = 2
+text = "🔗 创建连接"
+
+[node name="RemoveConnectionsButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/ConnectionActions/ConnectionGrid"]
+layout_mode = 2
+text = "❌ 删除连接"
+
+[node name="TreeActions" type="VBoxContainer" parent="./VBoxContainer/MainContainer/ToolPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActionsLabel" type="Label" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions"]
+layout_mode = 2
+text = "技能树操作"
+
+[node name="ActionsGrid" type="GridContainer" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 1
+
+[node name="SaveButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions/ActionsGrid"]
+layout_mode = 2
+text = "💾 保存技能树"
+
+[node name="LoadButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions/ActionsGrid"]
+layout_mode = 2
+text = "📂 加载技能树"
+
+[node name="ExportButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions/ActionsGrid"]
+layout_mode = 2
+text = "📤 导出JSON"
+
+[node name="ResetButton" type="Button" parent="./VBoxContainer/MainContainer/ToolPanel/TreeActions/ActionsGrid"]
+layout_mode = 2
+text = "🔄 重置技能树"
+
+[node name="EditorContainer" type="VBoxContainer" parent="./VBoxContainer/MainContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ViewportContainer" type="ViewportContainer" parent="./VBoxContainer/MainContainer/EditorContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Viewport" type="Viewport" parent="./VBoxContainer/MainContainer/EditorContainer/ViewportContainer"]
+size = Vector2i(900, 700)
+
+[node name="SkillTreeLayer" type="Node2D" parent="./VBoxContainer/MainContainer/EditorContainer/ViewportContainer/Viewport"]
+
+[node name="StatusBar" type="HBoxContainer" parent="./VBoxContainer/MainContainer/EditorContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrentSystem" type="Label" parent="./VBoxContainer/MainContainer/EditorContainer/StatusBar"]
+layout_mode = 2
+text = "当前体系: 自然魔法"
+
+[node name="CurrentTool" type="Label" parent="./VBoxContainer/MainContainer/EditorContainer/StatusBar"]
+layout_mode = 2
+text = "当前工具: 选择/查看"
+
+[node name="NodeCount" type="Label" parent="./VBoxContainer/MainContainer/EditorContainer/StatusBar"]
+layout_mode = 2
+text = "节点数量: 0"

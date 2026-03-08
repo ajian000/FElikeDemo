@@ -1,4 +1,6 @@
 // 地图编辑器
+import { getTerrainSystem } from './terrain.js';
+
 class MapEditor {
     constructor() {
         this.canvas = document.getElementById('editorCanvas');
@@ -14,6 +16,7 @@ class MapEditor {
         this.terrain = [];
         this.units = [];
         this.isDrawing = false;
+        this.terrainSystem = getTerrainSystem();
         
         this.init();
     }
@@ -29,10 +32,14 @@ class MapEditor {
         for (let y = 0; y < this.mapHeight; y++) {
             this.terrain[y] = [];
             for (let x = 0; x < this.mapWidth; x++) {
+                const baseType = this.mapType === 'outdoor' ? 'grass' : 'floor';
+                const terrainData = this.terrainSystem.getTerrainType(baseType);
                 this.terrain[y][x] = {
-                    type: this.mapType === 'outdoor' ? 'grass' : 'floor',
-                    moveCost: 1,
-                    defBonus: 0
+                    type: baseType,
+                    moveCost: terrainData.moveCost,
+                    defBonus: terrainData.defBonus,
+                    passable: terrainData.passable,
+                    effect: terrainData.effect
                 };
             }
         }
@@ -94,42 +101,7 @@ class MapEditor {
     }
     
     setTerrain(x, y, type) {
-        this.terrain[y][x].type = type;
-        
-        switch (type) {
-            case 'grass':
-                this.terrain[y][x].moveCost = 1;
-                this.terrain[y][x].defBonus = 0;
-                break;
-            case 'water':
-                this.terrain[y][x].moveCost = 999;
-                this.terrain[y][x].defBonus = 0;
-                break;
-            case 'mountain':
-                this.terrain[y][x].moveCost = 2;
-                this.terrain[y][x].defBonus = 1;
-                break;
-            case 'fire':
-                this.terrain[y][x].moveCost = 2;
-                this.terrain[y][x].defBonus = 0;
-                break;
-            case 'ice':
-                this.terrain[y][x].moveCost = 1;
-                this.terrain[y][x].defBonus = 0;
-                break;
-            case 'rock':
-                this.terrain[y][x].moveCost = 999;
-                this.terrain[y][x].defBonus = 2;
-                break;
-            case 'wall':
-                this.terrain[y][x].moveCost = 999;
-                this.terrain[y][x].defBonus = 1;
-                break;
-            case 'floor':
-                this.terrain[y][x].moveCost = 1;
-                this.terrain[y][x].defBonus = 0;
-                break;
-        }
+        this.terrainSystem.changeTerrainType(this.terrain[y][x], type);
     }
     
     placeUnit(x, y, unitType) {
@@ -376,18 +348,8 @@ class MapEditor {
                 const px = x * this.gridSize;
                 const py = y * this.gridSize;
                 
-                let color;
-                switch (terrain.type) {
-                    case 'grass': color = '#90ee90'; break;
-                    case 'water': color = '#4a90e2'; break;
-                    case 'mountain': color = '#8b7355'; break;
-                    case 'fire': color = '#ff4500'; break;
-                    case 'ice': color = '#e0ffff'; break;
-                    case 'rock': color = '#696969'; break;
-                    case 'wall': color = '#4a4a4a'; break;
-                    case 'floor': color = '#d4d4d4'; break;
-                    default: color = '#90ee90';
-                }
+                // 使用地形系统获取颜色
+                const color = this.terrainSystem.getTerrainColor(terrain.type);
                 
                 this.ctx.fillStyle = color;
                 this.ctx.fillRect(px, py, this.gridSize, this.gridSize);
@@ -405,10 +367,18 @@ class MapEditor {
                 }
                 
                 // 防御加成标记
-                if (terrain.defBonus > 0) {
+                const defBonus = this.terrainSystem.getDefBonus(terrain);
+                if (defBonus > 0) {
                     this.ctx.fillStyle = '#ffd700';
                     this.ctx.font = '12px Arial';
-                    this.ctx.fillText(`+${terrain.defBonus}`, px + 2, py + 12);
+                    this.ctx.fillText(`+${defBonus}`, px + 2, py + 12);
+                }
+                
+                // 地形效果标记
+                if (terrain.effect) {
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(terrain.effect.substring(0, 2), px + this.gridSize - 15, py + 12);
                 }
             }
         }

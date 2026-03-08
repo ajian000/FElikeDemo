@@ -1,4 +1,5 @@
 // 魔法战棋 - 核心游戏逻辑
+import { getTerrainSystem, canMoveTo, calculateMoveCost } from './terrain.js';
 
 class Game {
     constructor() {
@@ -20,6 +21,7 @@ class Game {
         this.units = [];
         this.terrain = [];
         this.effects = [];
+        this.terrainSystem = getTerrainSystem();
         
         this.init();
     }
@@ -37,58 +39,27 @@ class Game {
         for (let y = 0; y < this.mapHeight; y++) {
             this.terrain[y] = [];
             for (let x = 0; x < this.mapWidth; x++) {
+                const baseType = this.mapType === 'outdoor' ? 'grass' : 'floor';
+                const terrainData = this.terrainSystem.getTerrainType(baseType);
                 this.terrain[y][x] = {
-                    type: this.mapType === 'outdoor' ? 'grass' : 'floor',
-                    moveCost: 1,
-                    defBonus: 0
+                    type: baseType,
+                    moveCost: terrainData.moveCost,
+                    defBonus: terrainData.defBonus,
+                    passable: terrainData.passable,
+                    effect: terrainData.effect
                 };
             }
         }
         
         if (this.mapType === 'outdoor') {
             // 室外地图添加一些特殊地形
-            this.createWaterArea(5, 6, 4, 3);
-            this.createMountainArea(12, 4, 3, 2);
-            this.createWaterArea(14, 10, 3, 2);
+            this.terrainSystem.createTerrainArea(this.terrain, 5, 6, 4, 3, 'water');
+            this.terrainSystem.createTerrainArea(this.terrain, 12, 4, 3, 2, 'mountain');
+            this.terrainSystem.createTerrainArea(this.terrain, 14, 10, 3, 2, 'water');
         } else {
-            // 室外地图添加一些墙壁
-            this.createWallArea(8, 5, 2, 4);
-            this.createWallArea(14, 8, 2, 3);
-        }
-    }
-    
-    createWaterArea(x, y, width, height) {
-        for (let dy = 0; dy < height; dy++) {
-            for (let dx = 0; dx < width; dx++) {
-                if (y + dy < this.mapHeight && x + dx < this.mapWidth) {
-                    this.terrain[y + dy][x + dx].type = 'water';
-                    this.terrain[y + dy][x + dx].moveCost = 999; // 阻挡
-                }
-            }
-        }
-    }
-    
-    createMountainArea(x, y, width, height) {
-        for (let dy = 0; dy < height; dy++) {
-            for (let dx = 0; dx < width; dx++) {
-                if (y + dy < this.mapHeight && x + dx < this.mapWidth) {
-                    this.terrain[y + dy][x + dx].type = 'mountain';
-                    this.terrain[y + dy][x + dx].moveCost = 2;
-                    this.terrain[y + dy][x + dx].defBonus = 1;
-                }
-            }
-        }
-    }
-    
-    createWallArea(x, y, width, height) {
-        for (let dy = 0; dy < height; dy++) {
-            for (let dx = 0; dx < width; dx++) {
-                if (y + dy < this.mapHeight && x + dx < this.mapWidth) {
-                    this.terrain[y + dy][x + dx].type = 'wall';
-                    this.terrain[y + dy][x + dx].moveCost = 999;
-                    this.terrain[y + dy][x + dx].defBonus = 1;
-                }
-            }
+            // 室内地图添加一些墙壁
+            this.terrainSystem.createTerrainArea(this.terrain, 8, 5, 2, 4, 'wall');
+            this.terrainSystem.createTerrainArea(this.terrain, 14, 8, 2, 3, 'wall');
         }
     }
     
@@ -317,16 +288,19 @@ class Game {
             const unitAtPos = this.getUnitAt(x, y);
             
             if (unitAtPos && unitAtPos !== unit) return; // 被其他单位占据
-            if (terrain.moveCost > remaining) return; // 地形阻挡
+            if (!this.terrainSystem.isPassable(terrain)) return; // 地形阻挡
+            
+            const moveCost = this.terrainSystem.getMoveCost(terrain);
+            if (moveCost > remaining) return; // 移动消耗超过剩余移动力
             
             visited.add(`${x},${y}`);
             range.push({ x, y, cost: unit.stats.move - remaining });
             
             // 四方向移动
-            visit(x + 1, y, remaining - terrain.moveCost, cost + terrain.moveCost);
-            visit(x - 1, y, remaining - terrain.moveCost, cost + terrain.moveCost);
-            visit(x, y + 1, remaining - terrain.moveCost, cost + terrain.moveCost);
-            visit(x, y - 1, remaining - terrain.moveCost, cost + terrain.moveCost);
+            visit(x + 1, y, remaining - moveCost, cost + moveCost);
+            visit(x - 1, y, remaining - moveCost, cost + moveCost);
+            visit(x, y + 1, remaining - moveCost, cost + moveCost);
+            visit(x, y - 1, remaining - moveCost, cost + moveCost);
         };
         
         visit(unit.x, unit.y, unit.stats.move, 0);
@@ -356,6 +330,14 @@ class Game {
         unit.x = x;
         unit.y = y;
         unit.hasMoved = true;
+        
+        // 应用地形效果
+        const terrain = this.terrain[y][x];
+        const effectResult = this.terrainSystem.applyTerrainEffect(unit, terrain);
+        if (effectResult) {
+            this.log(`${unit.name} ${effectResult}`, "system");
+        }
+        
         this.log(`${unit.name} 移动到 (${x}, ${y})`, "player");
         this.updateUI();
     }
@@ -494,28 +476,10 @@ class Game {
     
     changeTerrain(x, y, type) {
         const terrain = this.terrain[y][x];
-        const oldType = terrain.type;
+        const result = this.terrainSystem.changeTerrainType(terrain, type);
         
-        switch (type) {
-            case 'fire':
-                terrain.type = 'fire';
-                terrain.moveCost = 2;
-                terrain.defBonus = 0;
-                this.log(`(${x}, ${y}) 的地形变为燃烧状态`, "player");
-                break;
-            case 'ice':
-                terrain.type = 'ice';
-                terrain.moveCost = 1;
-                terrain.defBonus = 0;
-                this.log(`(${x}, ${y}) 的地形被冻结`, "player");
-                break;
-            case 'rock':
-                terrain.type = 'rock';
-                terrain.moveCost = 999;
-                terrain.defBonus = 2;
-                this.log(`(${x}, ${y}) 升起石柱`, "player");
-                break;
-        }
+        const terrainName = this.terrainSystem.getTerrainType(type).name;
+        this.log(`(${x}, ${y}) 的地形变为 ${terrainName}`, "player");
         
         this.render();
     }
@@ -787,19 +751,8 @@ class Game {
                 const px = x * this.gridSize;
                 const py = y * this.gridSize;
                 
-                // 根据地形类型设置颜色
-                let color;
-                switch (terrain.type) {
-                    case 'grass': color = '#90ee90'; break;
-                    case 'water': color = '#4a90e2'; break;
-                    case 'mountain': color = '#8b7355'; break;
-                    case 'fire': color = '#ff4500'; break;
-                    case 'ice': color = '#e0ffff'; break;
-                    case 'rock': color = '#696969'; break;
-                    case 'wall': color = '#4a4a4a'; break;
-                    case 'floor': color = '#d4d4d4'; break;
-                    default: color = '#90ee90';
-                }
+                // 使用地形系统获取颜色
+                const color = this.terrainSystem.getTerrainColor(terrain.type);
                 
                 this.ctx.fillStyle = color;
                 this.ctx.fillRect(px, py, this.gridSize, this.gridSize);
@@ -822,10 +775,18 @@ class Game {
                 this.ctx.strokeRect(px, py, this.gridSize, this.gridSize);
                 
                 // 防御加成标记
-                if (terrain.defBonus > 0) {
+                const defBonus = this.terrainSystem.getDefBonus(terrain);
+                if (defBonus > 0) {
                     this.ctx.fillStyle = '#ffd700';
                     this.ctx.font = '12px Arial';
-                    this.ctx.fillText(`+${terrain.defBonus}`, px + 2, py + 12);
+                    this.ctx.fillText(`+${defBonus}`, px + 2, py + 12);
+                }
+                
+                // 地形效果标记
+                if (terrain.effect) {
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(terrain.effect.substring(0, 2), px + this.gridSize - 15, py + 12);
                 }
             }
         }

@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://b3k9f7j5a7r7y"]
+
+[node name="MapEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("MapEditorScript_9f7j5a7r7y")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="./VBoxContainer"]
+layout_mode = 2
+
+[node name="ToolPanel" type="VBoxContainer" parent="./VBoxContainer/HBoxContainer"]
+layout_mode = 2
+min_size = Vector2i(250, 0)
+
+[node name="ToolHeader" type="HBoxContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="./VBoxContainer/HBoxContainer/ToolPanel/ToolHeader"]
+layout_mode = 2
+text = "地图编辑器"
+label_settings = SubResource("LabelSettings_4q8b5")
+
+[node name="CloseButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/ToolHeader"]
+layout_mode = 2
+text = "关闭"
+
+[node name="MapType" type="HBoxContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="./VBoxContainer/HBoxContainer/ToolPanel/MapType"]
+layout_mode = 2
+text = "地图类型:"
+
+[node name="MapTypeSelect" type="OptionButton" parent="./VBoxContainer/HBoxContainer/ToolPanel/MapType"]
+layout_mode = 2
+
+[node name="TerrainTools" type="VBoxContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="./VBoxContainer/HBoxContainer/ToolPanel/TerrainTools"]
+layout_mode = 2
+text = "地形工具"
+label_settings = SubResource("LabelSettings_0q9l7")
+
+[node name="TerrainGrid" type="GridContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel/TerrainTools"]
+layout_mode = 2
+columns = 4
+
+[node name="UnitTools" type="VBoxContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="./VBoxContainer/HBoxContainer/ToolPanel/UnitTools"]
+layout_mode = 2
+text = "单位工具"
+label_settings = SubResource("LabelSettings_0q9l7")
+
+[node name="UnitGrid" type="GridContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel/UnitTools"]
+layout_mode = 2
+columns = 3
+
+[node name="Buttons" type="VBoxContainer" parent="./VBoxContainer/HBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/Buttons"]
+layout_mode = 2
+text = "保存地图"
+
+[node name="LoadButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/Buttons"]
+layout_mode = 2
+text = "加载地图"
+
+[node name="ExportButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/Buttons"]
+layout_mode = 2
+text = "导出JSON"
+
+[node name="ApplyButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/Buttons"]
+layout_mode = 2
+text = "应用到游戏"
+
+[node name="ClearButton" type="Button" parent="./VBoxContainer/HBoxContainer/ToolPanel/Buttons"]
+layout_mode = 2
+text = "清空地图"
+
+[node name="EditorContainer" type="VBoxContainer" parent="./VBoxContainer/HBoxContainer"]
+layout_mode = 2
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatusBar" type="HBoxContainer" parent="./VBoxContainer/HBoxContainer/EditorContainer"]
+layout_mode = 2
+
+[node name="CurrentTool" type="Label" parent="./VBoxContainer/HBoxContainer/EditorContainer/StatusBar"]
+layout_mode = 2
+text = "当前工具: 无"
+
+[node name="MapSize" type="Label" parent="./VBoxContainer/HBoxContainer/EditorContainer/StatusBar"]
+layout_mode = 2
+text = "地图尺寸: 20x15"
+
+[node name="ViewportContainer" type="ViewportContainer" parent="./VBoxContainer/HBoxContainer/EditorContainer"]
+layout_mode = 2
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Viewport" type="Viewport" parent="./VBoxContainer/HBoxContainer/EditorContainer/ViewportContainer"]
+size = Vector2i(800, 600)
+
+[node name="EditorGrid" type="Node2D" parent="./VBoxContainer/HBoxContainer/EditorContainer/ViewportContainer/Viewport"]
+
+[node name="TerrainLayer" type="Node2D" parent="./VBoxContainer/HBoxContainer/EditorContainer/ViewportContainer/Viewport/EditorGrid"]
+
+[node name="UnitLayer" type="Node2D" parent="./VBoxContainer/HBoxContainer/EditorContainer/ViewportContainer/Viewport/EditorGrid"]
+
+[node name="GridLayer" type="Node2D" parent="./VBoxContainer/HBoxContainer/EditorContainer/ViewportContainer/Viewport/EditorGrid"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_0q9l7"]
+font_size = 12
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4q8b5"]
+font_size = 16
+font_color = Color(0, 0, 0, 1)
+
+[ext_resource type="Script" path="res://MapEditor.gd" id="MapEditorScript_9f7j5a7r7y"]
