@@ -26,7 +26,7 @@ var battle_log = []
 var max_log_entries = 50
 
 # 单位节点类
-var UnitNode = preload("res://game/UnitNode.gd")
+var UnitNodeClass = preload("res://game/UnitNode.gd")
 
 # UI元素
 var ui_root = null
@@ -182,7 +182,7 @@ func create_unit(owner: String, x: int, y: int, name: String, type: String, stat
 	}
 	
 	# 创建单位节点
-	var unit_node = UnitNode.new()
+	var unit_node = UnitNodeClass.new()
 	unit_node.set_unit_data(unit)
 	unit_node.unit_clicked.connect(_on_unit_clicked)
 	add_child(unit_node)
@@ -200,9 +200,9 @@ func calculate_move_range(unit: Dictionary) -> Array:
 	var queue = []
 	
 	# 初始位置
-	queue.append({x: unit.x, y: unit.y, remaining: unit.stats.move})
+	queue.append({"x": unit.x, "y": unit.y, "remaining": unit.stats.move})
 	visited["%d,%d" % [unit.x, unit.y]] = true
-	
+
 	# 使用广度优先搜索代替递归
 	while queue.size() > 0:
 		var current = queue.pop_front()
@@ -211,7 +211,7 @@ func calculate_move_range(unit: Dictionary) -> Array:
 		var remaining = current.remaining
 		
 		# 四方向移动
-		var directions = [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}]
+		var directions = [{"dx": 1, "dy": 0}, {"dx": -1, "dy": 0}, {"dx": 0, "dy": 1}, {"dx": 0, "dy": -1}]
 		for dir in directions:
 			var new_x = x + dir.dx
 			var new_y = y + dir.dy
@@ -245,8 +245,8 @@ func calculate_move_range(unit: Dictionary) -> Array:
 			visited[pos_key] = true
 			
 			# 添加到范围和队列
-			range.append({x: new_x, y: new_y, cost: unit.stats.move - new_remaining})
-			queue.append({x: new_x, y: new_y, remaining: new_remaining})
+			range.append({"x": new_x, "y": new_y, "cost": unit.stats.move - new_remaining})
+			queue.append({"x": new_x, "y": new_y, "remaining": new_remaining})
 	
 	return range
 
@@ -270,7 +270,7 @@ func calculate_attack_range(unit: Dictionary) -> Array:
 		for x in range(start_x, end_x + 1):
 			var dist = abs(x - unit.x) + abs(y - unit.y)
 			if dist <= max_range and dist > 0:
-				range.append({x: x, y: y, dist: dist})
+				range.append({"x": x, "y": y, "dist": dist})
 	
 	return range
 
@@ -680,7 +680,7 @@ func enemy_turn() -> void:
 func select_best_target(unit: Dictionary) -> Dictionary:
 	var player_units = units.filter(func(u): return u.owner == "player")
 	if player_units.size() == 0:
-		return null
+		return {}
 	
 	var best_target = null
 	var highest_priority = -1
@@ -913,7 +913,7 @@ func add_battle_log(sender: String, message: String) -> void:
 		"sender": sender,
 		"message": message,
 		"turn": current_turn,
-		"time": OS.get_time_dict_from_system()
+		"time": Time.get_datetime_dict_from_system()
 	}
 	
 	battle_log.append(log_entry)
@@ -955,7 +955,7 @@ func calculate_hit(caster: Dictionary, target: Dictionary) -> bool:
 	final_hit = clamp(final_hit, 5, 95)  # 最低5%命中，最高95%命中
 	
 	# 随机判定
-	var rand = rand_range(0, 100)
+	var rand = randf_range(0, 100)
 	return rand < final_hit
 
 # 应用状态效果
@@ -963,13 +963,13 @@ func apply_status_effect(unit: Dictionary, effect: String) -> void:
 	match effect:
 		"燃烧":
 			# 燃烧效果：每回合造成持续伤害
-			var burn_effect = {name: "burn", duration: 3, damage: 2}
+			var burn_effect = {"name": "burn", "duration": 3, "damage": 2}
 			unit.status_effects.append(burn_effect)
 			print("%s 被燃烧了！" % unit.name)
 			add_battle_log("系统", "%s 被燃烧了！" % unit.name)
 		"减速":
 			# 减速效果：降低移动速度
-			var slow_effect = {name: "slow", duration: 2, move_penalty: 1}
+			var slow_effect = {"name": "slow", "duration": 2, "move_penalty": 1}
 			unit.status_effects.append(slow_effect)
 			unit.stats.move = max(1, unit.stats.move - 1)
 			print("%s 被减速了！" % unit.name)
@@ -1111,7 +1111,7 @@ func create_ui() -> void:
 	var gradient = Gradient.new()
 	gradient.add_point(0.0, Color(0.1, 0.1, 0.2))
 	gradient.add_point(1.0, Color(0.2, 0.1, 0.3))
-	var gradient_texture = GradientTexture.new()
+	var gradient_texture = GradientTexture2D.new()
 	gradient_texture.gradient = gradient
 	gradient_texture.width = 1
 	gradient_texture.height = 768
@@ -1624,19 +1624,23 @@ func _on_editor_button_pressed() -> void:
 	print("打开地图编辑器...")
 	
 	# 加载地图编辑器场景
-	var editor_scene = preload("res://MapEditor.tscn")
-	var editor_instance = editor_scene.instantiate()
-	add_child(editor_instance)
-	
-	print("地图编辑器已打开")
+	var editor_scene = load("res://MapEditor.tscn")
+	if editor_scene:
+		var editor_instance = editor_scene.instantiate()
+		add_child(editor_instance)
+		print("地图编辑器已打开")
+	else:
+		print("无法加载地图编辑器场景！")
 
 # 打开技能树编辑器
 func open_skill_editor() -> void:
 	print("打开技能树编辑器...")
 	
 	# 加载技能树编辑器场景
-	var skill_editor_scene = preload("res://SkillTreeEditor.tscn")
-	var skill_editor_instance = skill_editor_scene.instantiate()
-	add_child(skill_editor_instance)
-	
-	print("技能树编辑器已打开")
+	var skill_editor_scene = load("res://SkillTreeEditor.tscn")
+	if skill_editor_scene:
+		var skill_editor_instance = skill_editor_scene.instantiate()
+		add_child(skill_editor_instance)
+		print("技能树编辑器已打开")
+	else:
+		print("无法加载技能树编辑器场景！")
